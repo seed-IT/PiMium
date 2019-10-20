@@ -1,0 +1,8 @@
+# Git ignore of PiMium
+# Repository from seed-IT organisation
+# See repository at https://github.com/seed-IT/PiMium
+#====================================================
+
+# Python virtual environment
+*/.env/*
+
