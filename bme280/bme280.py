@@ -29,5 +29,5 @@ while True:
         print("Humidity: %0.1f %%" % bme280.humidity)
         print("Pressure: %0.1f hPa" % bme280.pressure)
         print("Altitude = %0.2f meters" % bme280.altitude)
-        time.sleep(2)
+        time.sleep(300) # 5 minutes
 
