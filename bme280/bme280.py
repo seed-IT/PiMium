@@ -35,10 +35,10 @@ time.sleep(1)
 
 while True:
         now = datetime.datetime.now() # Get current date and time
-        print("\n" + now.strftime("%Y-%m-%d %H:%M:%S"))
-        print("Temperature: %0.1f C" % bme280.temperature)
-        print("Humidity: %0.1f %%" % bme280.humidity)
-        print("Pressure: %0.1f hPa" % bme280.pressure)
-        print("Altitude = %0.2f meters" % bme280.altitude)
+        print(f'\n{now.strftime("%Y-%m-%d %H:%M:%S")}')
+        print(f'Temperature: {bme280.temperature:.1f} °C')
+        print(f'Humidity: {bme280.humidity:.2f} %')
+        print(f'Pressure: {bme280.pressure:.2f} hPa')
+        print(f'Altitude = {bme280.altitude:.2f} m')
         time.sleep(300) # 5 minutes
 
