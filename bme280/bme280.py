@@ -1,10 +1,9 @@
-import time
+import time, datetime
 import digitalio
 import board
 import busio
 import adafruit_bme280
-import os
-import datetime
+import json
 
 # Create library object using Bus I2C port
 #i2c = busio.I2C(board.SCL, board.SDA)
@@ -24,8 +23,8 @@ bme280.overscan_pressure = adafruit_bme280.OVERSCAN_X16
 bme280.overscan_humidity = adafruit_bme280.OVERSCAN_X1
 bme280.overscan_temperature = adafruit_bme280.OVERSCAN_X2
 
-# Clear terminal on Windows and UNIX system before starting everything
-os.system('cls' if os.name == 'nt' else 'clear')
+# Clear terminal before starting everything
+print(chr(27) + "[2J")
 print("Please note Altitude is calculated based on pressure information.")
 print("Starting record of BME280 sensor...")
 print("===================================")
@@ -33,12 +32,26 @@ print("===================================")
 # The sensor will need a moment to gather initial readings
 time.sleep(1)
 
+
 while True:
-        now = datetime.datetime.now() # Get current date and time
-        print(f'\n{now.strftime("%Y-%m-%d %H:%M:%S")}')
-        print(f'Temperature: {bme280.temperature:.1f} °C')
-        print(f'Humidity: {bme280.humidity:.2f} %')
-        print(f'Pressure: {bme280.pressure:.2f} hPa')
-        print(f'Altitude = {bme280.altitude:.2f} m')
-        time.sleep(300) # 5 minutes
+    now = datetime.datetime.now() # Get current date and time
+
+    print(f'\n{now.strftime("%Y-%m-%d %H:%M:%S")}')
+    print(f'Temperature: {bme280.temperature:.1f} °C')
+    print(f'Humidity: {bme280.humidity:.2f} %')
+    print(f'Pressure: {bme280.pressure:.2f} hPa')
+    print(f'Altitude = {bme280.altitude:.2f} m')
+
+    # dict which will be used by JSON
+    jeanMi = {'datetime': now.isoformat(),
+            'temp': bme280.temperature,
+            'humidity': bme280.humidity,
+            'pressure': bme280.pressure}
+
+    # JSON part
+    data_json = json.dumps(jeanMi)
+    with open('bme280data.json', 'a') as f:
+        f.write(data_json + "/n")
+
+    time.sleep(300) # 5 minutes
 
