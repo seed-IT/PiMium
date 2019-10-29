@@ -4,6 +4,7 @@ import board
 import busio
 import adafruit_bme280
 import json
+import sys
 
 # Create library object using Bus I2C port
 #i2c = busio.I2C(board.SCL, board.SDA)
@@ -53,8 +54,12 @@ def sensortojson():
     return;
 
 while True:
-    now = datetime.datetime.now() # Get current date and time
-    display();
-    sensortojson();
-    time.sleep(300) # 5 minutes
+    try:
+        now = datetime.datetime.now() # Get current date and time
+        display();
+        sensortojson();
+        time.sleep(300) # 5 minutes
+    except (KeyboardInterrupt, SystemExit):
+        print("KeyboardInterrupt has been caught. Stopping BME280 app...")
+        sys.exit()
 
