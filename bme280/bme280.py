@@ -1,10 +1,9 @@
-import time
+import time, datetime
 import digitalio
 import board
 import busio
 import adafruit_bme280
-import os
-import datetime
+import json
 
 # Create library object using Bus I2C port
 #i2c = busio.I2C(board.SCL, board.SDA)
@@ -24,21 +23,38 @@ bme280.overscan_pressure = adafruit_bme280.OVERSCAN_X16
 bme280.overscan_humidity = adafruit_bme280.OVERSCAN_X1
 bme280.overscan_temperature = adafruit_bme280.OVERSCAN_X2
 
-# Clear terminal on Windows and UNIX system before starting everything
-os.system('cls' if os.name == 'nt' else 'clear')
-print("Please note Altitude is calculated based on pressure information.")
-print("Starting record of BME280 sensor...")
-print("===================================")
+# Clear terminal before starting everything
+print(chr(27) + "[2J")
+print('Please note Altitude is calculated based on pressure information.')
+print('Altitude will not be shown nor stored as it\'s not necessary for this app.')
+print('Starting record of BME280 sensor...')
+print('===================================')
 
 # The sensor will need a moment to gather initial readings
 time.sleep(1)
 
+# Terminal viewer
+def display():
+    print(f'\n{now.strftime("%Y-%m-%d | %H:%M:%S")}')
+    print(f'Temperature: {bme280.temperature:.1f} °C')
+    print(f'Humidity: {bme280.humidity:.2f} %')
+    print(f'Pressure: {bme280.pressure:.2f} hPa')
+
+# JSON part
+def sensortojson():
+    # dict which will be used by JSON
+    bob = {'datetime': now.isoformat("|"), # date | time in ISO8601
+            'temperature': bme280.temperature, # in Celsius
+            'humidity': bme280.humidity, # in percentage
+            'pressure': bme280.pressure} # in hectopascal
+    data_json = json.dumps(bob)
+    with open('bme280data.json', 'a') as f:
+            f.write(data_json + "\n")
+    return;
+
 while True:
-        now = datetime.datetime.now() # Get current date and time
-        print("\n" + now.strftime("%Y-%m-%d %H:%M:%S"))
-        print("Temperature: %0.1f C" % bme280.temperature)
-        print("Humidity: %0.1f %%" % bme280.humidity)
-        print("Pressure: %0.1f hPa" % bme280.pressure)
-        print("Altitude = %0.2f meters" % bme280.altitude)
-        time.sleep(300) # 5 minutes
+    now = datetime.datetime.now() # Get current date and time
+    display();
+    sensortojson();
+    time.sleep(300) # 5 minutes
 
