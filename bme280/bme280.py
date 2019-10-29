@@ -32,26 +32,28 @@ print("===================================")
 # The sensor will need a moment to gather initial readings
 time.sleep(1)
 
+# JSON part
+def sensortojson():
+    # dict which will be used by JSON
+    bob = {'datetime': now.isoformat("|"), # date | time in ISO8601
+            'temperature': bme280.temperature, # in Celsius
+            'humidity': bme280.humidity, # in percentage
+            'pressure': bme280.pressure} # in hectopascal
+    data_json = json.dumps(bob)
+    with open('bme280data.json', 'a') as f:
+            f.write(data_json + "\n")
+    return;
 
 while True:
     now = datetime.datetime.now() # Get current date and time
 
-    print(f'\n{now.strftime("%Y-%m-%d %H:%M:%S")}')
+    print(f'\n{now.strftime("%Y-%m-%d | %H:%M:%S")}')
     print(f'Temperature: {bme280.temperature:.1f} °C')
     print(f'Humidity: {bme280.humidity:.2f} %')
     print(f'Pressure: {bme280.pressure:.2f} hPa')
     print(f'Altitude = {bme280.altitude:.2f} m')
 
-    # dict which will be used by JSON
-    jeanMi = {'datetime': now.isoformat(),
-            'temp': bme280.temperature,
-            'humidity': bme280.humidity,
-            'pressure': bme280.pressure}
-
-    # JSON part
-    data_json = json.dumps(jeanMi)
-    with open('bme280data.json', 'a') as f:
-        f.write(data_json + "\n")
+    sensortojson();
 
     time.sleep(300) # 5 minutes
 
