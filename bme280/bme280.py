@@ -51,7 +51,7 @@ while True:
     # JSON part
     data_json = json.dumps(jeanMi)
     with open('bme280data.json', 'a') as f:
-        f.write(data_json + "/n")
+        f.write(data_json + "\n")
 
     time.sleep(300) # 5 minutes
 
