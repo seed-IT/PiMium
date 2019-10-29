@@ -25,12 +25,20 @@ bme280.overscan_temperature = adafruit_bme280.OVERSCAN_X2
 
 # Clear terminal before starting everything
 print(chr(27) + "[2J")
-print("Please note Altitude is calculated based on pressure information.")
-print("Starting record of BME280 sensor...")
-print("===================================")
+print('Please note Altitude is calculated based on pressure information.')
+print('Altitude will not be shown nor stored as it\'s not necessary for this app.')
+print('Starting record of BME280 sensor...')
+print('===================================')
 
 # The sensor will need a moment to gather initial readings
 time.sleep(1)
+
+# Terminal viewer
+def display():
+    print(f'\n{now.strftime("%Y-%m-%d | %H:%M:%S")}')
+    print(f'Temperature: {bme280.temperature:.1f} °C')
+    print(f'Humidity: {bme280.humidity:.2f} %')
+    print(f'Pressure: {bme280.pressure:.2f} hPa')
 
 # JSON part
 def sensortojson():
@@ -46,14 +54,7 @@ def sensortojson():
 
 while True:
     now = datetime.datetime.now() # Get current date and time
-
-    print(f'\n{now.strftime("%Y-%m-%d | %H:%M:%S")}')
-    print(f'Temperature: {bme280.temperature:.1f} °C')
-    print(f'Humidity: {bme280.humidity:.2f} %')
-    print(f'Pressure: {bme280.pressure:.2f} hPa')
-    print(f'Altitude = {bme280.altitude:.2f} m')
-
+    display();
     sensortojson();
-
     time.sleep(300) # 5 minutes
 
