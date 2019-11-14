@@ -34,20 +34,24 @@ print('===================================')
 # The sensor will need a moment to gather initial readings
 time.sleep(1)
 
+# ISO8601
+def get_date_time():
+    now.utcnow().replace(tzinfo=datetime.timezone.utc).isoformat()
+
 # Terminal viewer
 def display():
-    print(f'\n{now.strftime("%Y-%m-%d | %H:%M:%S")}')
+    print(f'\n{now.strftime("%Y-%m-%d T %H:%M:%S")}')
     print(f'Temperature: {bme280.temperature:.1f} °C')
     print(f'Humidity: {bme280.humidity:.2f} %')
     print(f'Pressure: {bme280.pressure:.2f} hPa')
 
 # JSON part
-def sensortojson():
+def sensor_to_json():
     # dict which will be used by JSON
-    bob = {'datetime': now.isoformat("|"), # date | time in ISO8601
-            'temperature': bme280.temperature, # in Celsius
-            'humidity': bme280.humidity, # in percentage
-            'pressure': bme280.pressure} # in hectopascal
+    bob = {'datetime': now.replace(tzinfo=datetime.timezone(offset=utc_offset)).isoformat(), # date T time in ISO8601
+            'temperature': float(f'{bme280.temperature:.2f}'), # in Celsius
+            'humidity': float(f'{bme280.humidity:.2f}'), # in percentage
+            'pressure': float(f'{bme280.pressure:.2f}')} # in hectopascal
     data_json = json.dumps(bob)
     with open('bme280data.json', 'a') as f:
             f.write(data_json + "\n")
@@ -56,8 +60,10 @@ def sensortojson():
 while True:
     try:
         now = datetime.datetime.now() # Get current date and time
+        utc_offset_sec = time.altzone if time.localtime().tm_isdst else time.timezone
+        utc_offset = datetime.timedelta(seconds=-utc_offset_sec)
         display();
-        sensortojson();
+        sensor_to_json();
         time.sleep(300) # 5 minutes
     except (KeyboardInterrupt, SystemExit):
         print("KeyboardInterrupt has been caught. Stopping BME280 app...")
