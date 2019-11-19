@@ -40,7 +40,7 @@ time.sleep(1)
 # ISO8601
 ## {"datetime": "2019-11-14T10:11:59.378308+01:00", "temperature": 22.69, "humidity": 37.33, "pressure": 986.74}
 def get_date_time():
-    now.replace(tzinfo=datetime.timezone(offset=utc_offset)).isoformat()
+    return now.replace(tzinfo=datetime.timezone(offset=utc_offset)).isoformat()
 
 # Terminal viewer
 def display():
