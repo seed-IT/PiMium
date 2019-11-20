@@ -8,6 +8,7 @@ import requests
 import sys
 
 api_url = "http://seed-it.eu:4000/sensor";
+time_between_record = 15*60; # minutes calculated in seconds
 
 # Create library object using Bus I2C port
 #i2c = busio.I2C(board.SCL, board.SDA)
@@ -93,7 +94,7 @@ while True:
         display()
         data = sensor_to_json()
         post_data()
-        time.sleep(15*60) # minutes calculated in seconds
+        time.sleep(time_between_record)
     except (KeyboardInterrupt, SystemExit):
         print("KeyboardInterrupt has been caught. Stopping BME280 app...")
         sys.exit()
