@@ -6,9 +6,25 @@ import adafruit_bme280
 import json
 import requests
 import sys
+import logging
 
 api_url = "http://seed-it.eu:4000/sensor";
-time_between_record = 15*60; # minutes calculated in seconds
+time_between_record = 60; # minutes calculated in seconds
+
+# Log configuration
+logger = logging.getLogger('bme280')
+logger.setLevel(logging.INFO)
+# create a file handler
+handler = logging.FileHandler('bme280.log')
+handler.setLevel(logging.INFO)
+# create a logging format
+formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s', '%Y-%m-%d %H:%M:%S')
+handler.setFormatter(formatter)
+# add the handlers to the logger
+logger.addHandler(handler)
+alice = logging.StreamHandler()
+alice.setFormatter(formatter)
+logger.addHandler(alice)
 
 # Create library object using Bus I2C port
 #i2c = busio.I2C(board.SCL, board.SDA)
@@ -30,10 +46,11 @@ bme280.overscan_temperature = adafruit_bme280.OVERSCAN_X2
 
 # Clear terminal before starting everything
 print(chr(27) + "[2J")
-print('Please note Altitude is calculated based on pressure information.')
-print('Altitude will not be shown nor stored as it\'s not necessary for this app.')
-print('Starting record of BME280 sensor...')
-print('===================================')
+print('Welcome to Rose, the tracking device of Seed-IT')
+logger.info('Please note Altitude is calculated based on pressure information.')
+logger.info('Altitude will not be shown nor stored as it\'s not necessary for this app.')
+logger.info('Start record of BME280 sensor')
+print('===================================================================')
 
 # The sensor will need a moment to gather initial readings
 time.sleep(1)
@@ -43,13 +60,6 @@ time.sleep(1)
 def get_date_time():
     return now.replace(tzinfo=datetime.timezone(offset=utc_offset)).isoformat()
 
-# Terminal viewer
-def display():
-    print(f'\n{now.strftime("%Y-%m-%d T %H:%M:%S")}')
-    print(f'Temperature: {bme280.temperature:.1f} °C')
-    print(f'Humidity: {bme280.humidity:.2f} %')
-    print(f'Pressure: {bme280.pressure:.2f} hPa')
-
 # JSON part
 def sensor_to_json():
     # dict which will be used by JSON
@@ -58,6 +68,7 @@ def sensor_to_json():
             'humidity': float(f'{bme280.humidity:.1f}'), # in percentage
             'pressure': float(f'{bme280.pressure:.2f}')} # in hectopascal
     data_json = json.dumps(bob)
+    logger.info('Records: %s', data_json)
     with open('bme280data.json', 'a') as f:
         f.write(data_json + "\n")
     return data_json
@@ -65,37 +76,37 @@ def sensor_to_json():
 # Fail method whenever needed
 def fail(msg):
     print(">>> Oops:",msg,file=sys.stderr)
+    logger.warn('Oops: %s', msg)
 
 def post_data():
-    print(">>> Sending data to seed-IT server...")
+    logger.info('Send data to seed-IT server via API')
     try:
         r = requests.post(api_url, data=data, timeout=5)
-        print(">>>",r.status_code,":",r.json()["message"])
+        logger.info('Status code: %s - %s', str(r.status_code), r.json()['message'])
         if r.status_code in range(200,300):
-            print(">>> Success")
+            logger.info('Success')
         else:
             fail(str(r.status_code))
     except requests.exceptions.HTTPError as err:
-        fail("HTTP error")
+        fail('HTTP error')
     except requests.exceptions.ConnectionError as errc:
-        fail("Connection error")
+        fail('Connection error')
     except requests.exceptions.Timeout as errt:
         # set up for a tmp file before next try
-        fail("Timeout error")
+        fail('Timeout error')
     except request.exceptions.RequestException as e:
         # catastrophic error, you need to go to jail
-        fail("Request error")
+        fail('Request error')
 
 while True:
     try:
         now = datetime.datetime.now() # Get current date and time
         utc_offset_sec = time.altzone if time.localtime().tm_isdst else time.timezone
         utc_offset = datetime.timedelta(seconds=-utc_offset_sec)
-        display()
         data = sensor_to_json()
         post_data()
         time.sleep(time_between_record)
     except (KeyboardInterrupt, SystemExit):
-        print("KeyboardInterrupt has been caught. Stopping BME280 app...")
+        logger.info('KeyboardInterrupt/SystemExit caught')
         sys.exit()
 
