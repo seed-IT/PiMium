@@ -4,7 +4,11 @@ import board
 import busio
 import adafruit_bme280
 import json
+import requests
 import sys
+
+api_url = "http://seed-it.eu:4000/sensor";
+time_between_record = 15*60; # minutes calculated in seconds
 
 # Create library object using Bus I2C port
 #i2c = busio.I2C(board.SCL, board.SDA)
@@ -35,8 +39,9 @@ print('===================================')
 time.sleep(1)
 
 # ISO8601
+## {"datetime": "2019-11-14T10:11:59.378308+01:00", "temperature": 22.69, "humidity": 37.33, "pressure": 986.74}
 def get_date_time():
-    now.utcnow().replace(tzinfo=datetime.timezone.utc).isoformat()
+    return now.replace(tzinfo=datetime.timezone(offset=utc_offset)).isoformat()
 
 # Terminal viewer
 def display():
@@ -48,23 +53,48 @@ def display():
 # JSON part
 def sensor_to_json():
     # dict which will be used by JSON
-    bob = {'datetime': now.replace(tzinfo=datetime.timezone(offset=utc_offset)).isoformat(), # date T time in ISO8601
-            'temperature': float(f'{bme280.temperature:.2f}'), # in Celsius
-            'humidity': float(f'{bme280.humidity:.2f}'), # in percentage
+    bob = {'datetime': get_date_time(), # date T time in ISO8601
+            'temperature': float(f'{bme280.temperature:.1f}'), # in Celsius
+            'humidity': float(f'{bme280.humidity:.1f}'), # in percentage
             'pressure': float(f'{bme280.pressure:.2f}')} # in hectopascal
     data_json = json.dumps(bob)
     with open('bme280data.json', 'a') as f:
-            f.write(data_json + "\n")
-    return;
+        f.write(data_json + "\n")
+    return data_json
+
+# Fail method whenever needed
+def fail(msg):
+    print(">>> Oops:",msg,file=sys.stderr)
+
+def post_data():
+    print(">>> Sending data to seed-IT server...")
+    try:
+        r = requests.post(api_url, data=data, timeout=5)
+        print(">>>",r.status_code,":",r.json()["message"])
+        if r.status_code in range(200,300):
+            print(">>> Success")
+        else:
+            fail(str(r.status_code))
+    except requests.exceptions.HTTPError as err:
+        fail("HTTP error")
+    except requests.exceptions.ConnectionError as errc:
+        fail("Connection error")
+    except requests.exceptions.Timeout as errt:
+        # set up for a tmp file before next try
+        fail("Timeout error")
+    except request.exceptions.RequestException as e:
+        # catastrophic error, you need to go to jail
+        fail("Request error")
 
 while True:
     try:
         now = datetime.datetime.now() # Get current date and time
         utc_offset_sec = time.altzone if time.localtime().tm_isdst else time.timezone
         utc_offset = datetime.timedelta(seconds=-utc_offset_sec)
-        display();
-        sensor_to_json();
-        time.sleep(300) # 5 minutes
+        display()
+        data = sensor_to_json()
+        post_data()
+        time.sleep(time_between_record)
     except (KeyboardInterrupt, SystemExit):
         print("KeyboardInterrupt has been caught. Stopping BME280 app...")
         sys.exit()
