@@ -9,7 +9,8 @@ import sys
 import logging
 
 api_url = "http://seed-it.eu:4000/sensor";
-time_between_record = 60; # minutes calculated in seconds
+sending_timeout = 2; # timeout used to wait a certain amoun of time before returning the get/post of seed-IT API
+time_between_record = 60 - sending_timeout; # minutes calculated in seconds (timeout taken into account)
 
 # Log configuration
 logger = logging.getLogger('bme280')
@@ -47,10 +48,11 @@ bme280.overscan_temperature = adafruit_bme280.OVERSCAN_X2
 # Clear terminal before starting everything
 print(chr(27) + "[2J")
 print('Welcome to Rose, the tracking device of Seed-IT')
+print('===============================================')
 logger.info('Please note Altitude is calculated based on pressure information.')
 logger.info('Altitude will not be shown nor stored as it\'s not necessary for this app.')
 logger.info('Start record of BME280 sensor')
-print('===================================================================')
+print('-------------------')
 
 # The sensor will need a moment to gather initial readings
 time.sleep(1)
@@ -81,7 +83,7 @@ def fail(msg):
 def post_data():
     logger.info('Send data to seed-IT server via API')
     try:
-        r = requests.post(api_url, data=data, timeout=5)
+        r = requests.post(api_url, data=data, timeout=sending_timeout)
         logger.info('Status code: %s - %s', str(r.status_code), r.json()['message'])
         if r.status_code in range(200,300):
             logger.info('Success')
