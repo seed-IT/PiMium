@@ -9,38 +9,17 @@ import sys
 import logging
 import argparse
 
+# default variables values
 default_api_url = "http://seed-it.eu:4000/sensor";
 sending_timeout = 2; # timeout used to wait a certain amount of time before returning the get/post of seed-IT API
 default_time = 60 - sending_timeout; # minutes calculated in seconds (timeout taken into account)
 
+# arguments available to launch the app in a specific way
 parser = argparse.ArgumentParser(prog='Rose', description='The tracking device of seed-IT', add_help=True, prefix_chars='-', allow_abbrev=True)
 parser.add_argument('-u', '--url', help='URL of the seed-IT API', type=str, default=default_api_url, required=False)
-parser.add_argument('-t', '--time', help='Time between each record', type=int, default=default_time, required=False)
+parser.add_argument('-t', '--time', help='Time, in seconds, between each record taken', type=int, default=default_time, required=False)
 parser.add_argument('-v', '--version', help='%(prog)s program version', action='version', version='%(prog)s (with BME280) v0.5')
 args = parser.parse_args()
-
-def arguments(*args):
-    api_url = args.url[0];
-    time_between_record = args.time[0] - sending_timeout;
-    logger.info('API URL applied:', api_url)
-    logger.info('Time between records applied:', time_between_record)
-#    if args.url != null and args.time[1] != null:
-#        api_url = args.url;
-#        time_between_record = args.time - sending_timeout;
-#        logger.info('Custom API URL applied:', api_url)
-#        logger.info('Custom time between records applied:', time_between_record)
-#    elif args.url[1] != null and args.time[1] == null:
-#        api_url = args.url;
-#        time_between_record = time_default;
-#        logger.info('Default time between records + custom API URL applied:', api_url)
-#    elif args.url[1] == null and args.time[1] != null:
-#        api_url = default_api_url;
-#        time_between_record = args.time - sending_timeout;
-#        logger.info('Default API URL + custom time between records applied:', time_between_record)
-#    else:
-#        api_url = default_api_url;
-#        time_between_record = default_time;
-#        logger.info('Defaul API URL and time between records applied')
 
 # Log configuration
 logger = logging.getLogger('bme280')
@@ -83,7 +62,6 @@ logger.info('Please note Altitude is calculated based on pressure information.')
 logger.info('Altitude will not be shown nor stored as it\'s not necessary for this app.')
 logger.info('Start record of BME280 sensor')
 print('-------------------')
-arguments()
 
 # The sensor will need a moment to gather initial readings
 time.sleep(1)
@@ -114,7 +92,7 @@ def fail(msg):
 def post_data():
     logger.info('Send data to seed-IT server via API')
     try:
-        r = requests.post(api_url, data=data, timeout=sending_timeout)
+        r = requests.post(args.url, data=data, timeout=sending_timeout)
         logger.info('Status code: %s - %s', str(r.status_code), r.json()['message'])
         if r.status_code in range(200,300):
             logger.info('Success')
@@ -138,7 +116,7 @@ while True:
         utc_offset = datetime.timedelta(seconds=-utc_offset_sec)
         data = sensor_to_json()
         post_data()
-        time.sleep(time_between_record)
+        time.sleep(args.time)
     except (KeyboardInterrupt, SystemExit):
         logger.info('KeyboardInterrupt/SystemExit caught')
         sys.exit()
