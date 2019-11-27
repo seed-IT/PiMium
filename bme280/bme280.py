@@ -7,10 +7,40 @@ import json
 import requests
 import sys
 import logging
+import argparse
 
-api_url = "http://seed-it.eu:4000/sensor";
-sending_timeout = 2; # timeout used to wait a certain amoun of time before returning the get/post of seed-IT API
-time_between_record = 60 - sending_timeout; # minutes calculated in seconds (timeout taken into account)
+default_api_url = "http://seed-it.eu:4000/sensor";
+sending_timeout = 2; # timeout used to wait a certain amount of time before returning the get/post of seed-IT API
+default_time = 60 - sending_timeout; # minutes calculated in seconds (timeout taken into account)
+
+parser = argparse.ArgumentParser(prog='Rose', description='The tracking device of seed-IT', add_help=True, prefix_chars='-', allow_abbrev=True)
+parser.add_argument('-u', '--url', help='URL of the seed-IT API', type=str, default=default_api_url, required=False)
+parser.add_argument('-t', '--time', help='Time between each record', type=int, default=default_time, required=False)
+parser.add_argument('-v', '--version', help='%(prog)s program version', action='version', version='%(prog)s (with BME280) v0.5')
+args = parser.parse_args()
+
+def arguments(*args):
+    api_url = args.url[0];
+    time_between_record = args.time[0] - sending_timeout;
+    logger.info('API URL applied:', api_url)
+    logger.info('Time between records applied:', time_between_record)
+#    if args.url != null and args.time[1] != null:
+#        api_url = args.url;
+#        time_between_record = args.time - sending_timeout;
+#        logger.info('Custom API URL applied:', api_url)
+#        logger.info('Custom time between records applied:', time_between_record)
+#    elif args.url[1] != null and args.time[1] == null:
+#        api_url = args.url;
+#        time_between_record = time_default;
+#        logger.info('Default time between records + custom API URL applied:', api_url)
+#    elif args.url[1] == null and args.time[1] != null:
+#        api_url = default_api_url;
+#        time_between_record = args.time - sending_timeout;
+#        logger.info('Default API URL + custom time between records applied:', time_between_record)
+#    else:
+#        api_url = default_api_url;
+#        time_between_record = default_time;
+#        logger.info('Defaul API URL and time between records applied')
 
 # Log configuration
 logger = logging.getLogger('bme280')
@@ -53,6 +83,7 @@ logger.info('Please note Altitude is calculated based on pressure information.')
 logger.info('Altitude will not be shown nor stored as it\'s not necessary for this app.')
 logger.info('Start record of BME280 sensor')
 print('-------------------')
+arguments()
 
 # The sensor will need a moment to gather initial readings
 time.sleep(1)
