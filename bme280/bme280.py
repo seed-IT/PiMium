@@ -6,7 +6,7 @@ import adafruit_bme280
 import json
 import requests
 import sys
-import logging
+import logging, logging.handlers
 import argparse
 
 # default variables values
@@ -18,14 +18,15 @@ default_time = 60 - sending_timeout; # minutes calculated in seconds (timeout ta
 parser = argparse.ArgumentParser(prog='Rose', description='The tracking device of seed-IT', add_help=True, prefix_chars='-', allow_abbrev=True)
 parser.add_argument('-u', '--url', help='URL of the seed-IT API', type=str, default=default_api_url, required=False)
 parser.add_argument('-t', '--time', help='Time, in seconds, between each record taken', type=int, default=default_time, required=False)
-parser.add_argument('-v', '--version', help='%(prog)s program version', action='version', version='%(prog)s (with BME280) v0.5')
+parser.add_argument('-v', '--version', help='%(prog)s program version', action='version', version='%(prog)s (with BME280) v0.6')
 args = parser.parse_args()
 
 # Log configuration
 logger = logging.getLogger('bme280')
 logger.setLevel(logging.INFO)
-# create a file handler
-handler = logging.FileHandler('bme280.log')
+LOG_ROTATE = 'midnight'
+# create a file handler and timed rotating
+handler = logging.handlers.TimedRotatingFileHandler('bme280.log', when=LOG_ROTATE, backupCount=30, utc=False)
 handler.setLevel(logging.INFO)
 # create a logging format
 formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s', '%Y-%m-%d %H:%M:%S')
