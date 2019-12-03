@@ -8,5 +8,5 @@
 */.mypy_cache/*
 
 # Log and local json file
-*.log
+*.log*
 bme280data*.json

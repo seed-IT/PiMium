@@ -12,7 +12,7 @@ import argparse
 # default variables values
 default_api_url = "http://seed-it.eu:4000/sensor";
 sending_timeout = 2; # timeout used to wait a certain amount of time before returning the get/post of seed-IT API
-default_time = 60 - sending_timeout; # minutes calculated in seconds (timeout taken into account)
+default_time = (15*60) - sending_timeout; # minutes calculated in seconds (timeout taken into account)
 
 # arguments available to launch the app in a specific way
 parser = argparse.ArgumentParser(prog='Rose', description='The tracking device of seed-IT', add_help=True, prefix_chars='-', allow_abbrev=True)
